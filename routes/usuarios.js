@@ -3,6 +3,7 @@ const { check } = require('express-validator');
 
 // Middleware
 const { validarCampos } = require('../middlewares/validar-campos');
+const Role = require('../models/role');
 
 const {
   usuariosGet,
@@ -26,8 +27,13 @@ router.post(
       'La contraseña debe de ser mayor a 6 caracteres'
     ).isLength({ min: 6 }),
   ],
-  [check('rol', 'No es un rol válido').isIn(['ADMIN_ROLE', 'USER_ROLE'])],
-
+  // [check('rol', 'No es un rol válido').isIn(['ADMIN_ROLE', 'USER_ROLE'])],
+  check('rol').custom(async (rol = '') => {
+    const existeRol = await Role.findOne({ rol });
+    if (!existeRol) {
+      throw new Error(`El rol ${rol} no está registrado en la base de datos`);
+    }
+  }),
   validarCampos,
   usuariosPost
 );
